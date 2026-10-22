@@ -63,8 +63,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 CORS_ALLOWED_ORIGINS = [
-    "https://localhost:5373",
-    "https://172.0.0.1:5373",
+    "http://localhost:5173",
+    "http://172.0.0.1:5173",
 ]
 
 ROOT_URLCONF = 'gamearena_backend.urls'
