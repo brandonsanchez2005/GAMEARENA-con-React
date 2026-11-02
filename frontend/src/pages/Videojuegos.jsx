@@ -204,7 +204,7 @@ export default function Videojuegos() {
             setFormulario(formularioInicial);
             setEditandoId(null);
 
-        }catch (err) {
+        } catch (err) {
             setError(err.message);
         } finally {
             setProcesando(false);
@@ -221,17 +221,36 @@ export default function Videojuegos() {
         const confirmar = window.confirm("¿Está seguro de eliminar este videojuego?");
         if (!confirmar) return;
         try {
-        
-        }catch (err) {
+            setError("");
+            setMensaje("");
+
+            const respuesta = await fetch(
+                `${API_URL}${id}/`, {
+                method: "DELETE",
+                headers: {
+                    "Authorization": `Token ${token}`
+                }
+            });
+            if (!respuesta.ok) {
+                throw new Error("No se pudo eliminar el videojuego");
+            }
+            const actualizado = await respuesta.json();
+
+            setVideojuegos((actuales) =>
+                actuales.filter((videojuego) => videojuego.id !== id)
+            );
+            if (editandoId === id) {
+                cancelarEdicion();
+            }
+            setMensaje("Videojuego eliminado correctamente");
+        } catch (err) {
             setError(err.message);
         }
     }
     /*----------------------------------------------------------------------- */
-   
-
-
     return (
         <section className="container py-4">
+            <h1 className="mb-4">GameArena</h1>
             {!token ? (
                 <form onSubmit={iniciarSesion} className="card card-body mb-4">
                     <h2 className="h4 mb-3">Autenticación</h2>
@@ -261,8 +280,91 @@ export default function Videojuegos() {
                 <div className="alert alert-info">
                     Usuario autenticado.El token se enviará en POST, PATH y DELETE
                 </div>
-            )
-            }
-        </section>
+            )}
+            {mensaje && <div className="alert alert-success">{mensaje}</div>}
+            {error && <div className="alert alert-danger">{error}</div>}
+
+            <form onSubmit={guardarVideojuego} className="card card-body mb-4">
+                <h2 className="h4 mb-3">{editandoId ? "Editar videojuego" : "Nuevo videojuego"}</h2>
+                <div className="mb-3">
+                    <label className="form-label">Nombre</label>
+                    <input className="form-control"
+                        name="nombre"
+                        value={formulario.nombre}
+                        onChange={manejarCambioFormulario} />
+                </div>
+
+                <div className="mb-3">
+                    <label className="form-label">Género</label>
+                    <input className="form-control"
+                        name="genero"
+                        value={formulario.genero}
+                        onChange={manejarCambioFormulario} />
+                </div>
+
+                <div className="mb-3">
+                    <label className="form-label">Plataforma</label>
+                    <select className="form-control"
+                        name="plataforma"
+                        value={formulario.plataforma}
+                        onChange={manejarCambioFormulario}>
+                        <option value="PC">PC</option>
+                        <option value="PlayStation">PlayStation</option>
+                        <option value="Xbox">Xbox</option>
+                        <option value="Nintendo Switch">Nintendo Switch</option>
+                    </select>
+                </div>
+
+                <div className="mb-3">
+                    <label className="form-label">Clasificación</label>
+                    <input className="form-control"
+                        name="clasificacion"
+                        value={formulario.clasificacion}
+                        onChange={manejarCambioFormulario} />
+                </div>
+
+                <div className="mb-3">
+                    <label className="form-label">Fecha de lanzamiento</label>
+                    <input type="date"
+                        className="form-control"
+                        name="fechaLanzamiento"
+                        value={formulario.fechaLanzamiento}
+                        onChange={manejarCambioFormulario} />
+                </div>
+
+                <div className="form-check mb-3">
+                    <input type="checkbox"
+                        className="form-check-input"
+                        name="activo"
+                        checked={formulario.activo}
+                        onChange={manejarCambioFormulario} />
+                    <label className="form-check-label">Activo</label>
+                </div>
+
+                <div className="d-flex gap-2">
+                    <button className="btn-primary" disabled={procesando}>
+                        {procesando
+                            ? "Procesando..."
+                            : editandoId
+                                ? "Actualizar videojuego"
+                                : "Guardar videojuego"}
+                    </button>
+                    {editandoId && (
+                        <button className="btn btn-secondary" type="button" onClick={cancelarEdicion}>
+                            Cancelar
+                        </button>
+                    )}
+                </div>
+            </form>
+            <div className="row g-3">
+                {videojuegos.map((videojuego) => (
+                    <VideojuegoCard
+                        key={videojuego.id}
+                        videojuego={videojuego}
+                        onEditar={iniciarEdicion}
+                        onEliminar={eliminarVideojuego} />
+                ))}
+            </div>
+        </section >
     )
 }
