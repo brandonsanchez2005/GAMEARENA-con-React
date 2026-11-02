@@ -118,6 +118,7 @@ export default function Videojuegos() {
         if(!token){
             throw new Error("Debe autenticarse antes de crear un videojuego");
         }
+        
         const respuesta = await fetch(API_URL, {
             method: "POST",
             headers: {
@@ -132,7 +133,20 @@ export default function Videojuegos() {
         const nuevo = await respuesta.json();
         setVideojuegos((actuales) => [...actuales, nuevo]);
     }
-    /*---------------------------------------------------------------- */
+    /*-------------------Función para validar campos mixtos----------------------------- */
+    function validarCampos() {
+        if (!formulario.nombre.trim()) {
+            setError("El nombre es obligatorio");
+            return false;
+        }
+        if (!formulario.plataforma.trim()) {
+            setError("La plataforma es obligatoria");
+            return false;
+        }
+        return true;
+    }
+
+    /*-------------------Función para iniciar edición----------------------------- */
 
     return (
         <section className="container py-4">
