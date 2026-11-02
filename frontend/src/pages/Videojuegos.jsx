@@ -37,33 +37,33 @@ export default function Videojuegos() {
     }, []);
 
     async function cargarVideojuegos() {
-            try {
-                setCargando(true);
-                setError("");
+        try {
+            setCargando(true);
+            setError("");
 
-                const respuesta = await fetch(API_URL);
-                if (!respuesta.ok) {
-                    throw new Error(`Error HTTP: ${respuesta.status}`);
-                }
-                const datos = await respuesta.json();
-                setVideojuegos(datos);
-            } catch (err) {
-                setError(err.message);
-            } finally {
-                setCargando(false);
+            const respuesta = await fetch(API_URL);
+            if (!respuesta.ok) {
+                throw new Error(`Error HTTP: ${respuesta.status}`);
             }
+            const datos = await respuesta.json();
+            setVideojuegos(datos);
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setCargando(false);
         }
+    }
 
     if (cargando) return <p>Cargando Videojuegos...</p>
     if (error) return <p>Error:{error}</p>
-    /*--------------Función para actualizar credenciales---------------*/
+    /*------------ Función para actualizar credenciales ------------*/
     function manejarCambioCredenciales(e) {
         setCredenciales({
             ...credenciales,
             [e.target.name]: e.target.value,
         });
     }
-    /*---------------------------------------------------------------- */
+    /*----------------- Función para iniciar sesión ----------------*/
     async function iniciarSesion(e) {
         e.preventDefault();
         try {
@@ -100,7 +100,7 @@ export default function Videojuegos() {
             setAutenticando(false);
         }
     }
-    /*--------------Función manejar cambio en el formulario----------- */
+    /*------------ Función manejar cambio en el formulario ------------ */
     function manejarCambioFormulario(e) {
         const { name, value, type, checked } = e.target;
         /**name indica qué propiedad va a cambiar *
@@ -108,17 +108,17 @@ export default function Videojuegos() {
          * checked se utiliza para el checkbox activo
          * ...formulario conserva los demás campos
         */
-       setFormulario({
+        setFormulario({
             ...formulario,
             [name]: type === "checkbox" ? checked : value,
         });
     }
-    /*---------Función asincrónica de crear videojuegos------------- */
+    /*--------- Función asincrónica de crear videojuegos -------------- */
     async function crearVideojuego(e) {
-        if(!token){
+        if (!token) {
             throw new Error("Debe autenticarse antes de crear un videojuego");
         }
-        
+
         const respuesta = await fetch(API_URL, {
             method: "POST",
             headers: {
@@ -133,7 +133,7 @@ export default function Videojuegos() {
         const nuevo = await respuesta.json();
         setVideojuegos((actuales) => [...actuales, nuevo]);
     }
-    /*-------------------Función para validar campos mixtos----------------------------- */
+    /*------------ Función para validar campos mixtos ---------------- */
     function validarCampos() {
         if (!formulario.nombre.trim()) {
             setError("El nombre es obligatorio");
@@ -146,7 +146,89 @@ export default function Videojuegos() {
         return true;
     }
 
-    /*-------------------Función para iniciar edición----------------------------- */
+    /*----------------- Función para iniciar edición ---------------- */
+    function iniciarEdicion(videojuego) {
+        setEditandoId(videojuego.id);
+        setFormulario({
+            nombre: videojuego.nombre ?? "",
+            genero: videojuego.genero ?? "",
+            plataforma: videojuego.plataforma ?? "PC",
+            clasificacion: videojuego.clasificacion ?? "",
+            fecha_lanzamiento: videojuego.fecha_lanzamiento ?? "",
+            activo: videojuego.activo ?? true,
+        });
+        setMensaje("");
+        setError("");
+    }
+    /*----------------- Función para actualizar videojuego ---------------- */
+    async function actualizarVideojuego(e) {
+        const respuesta = await fetch(
+            `${API_URL}${editandoId}/`, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Token ${token}`
+            },
+            body: JSON.stringify(formulario)
+        });
+        if (!respuesta.ok) {
+            throw new Error("No se pudo actualizar el videojuego");
+        }
+        const actualizando = await respuesta.json();
+
+        setVideojuegos((actuales) =>
+            actuales.map((videojuego) =>
+                videojuego.id === actualizando.id
+                    ? actualizando
+                    : videojuego
+            )
+        );
+    }
+    /*-- Función para guardar un videojuego (Creándolo o actualizándolo) -- */
+    async function guardarVideojuego(e) {
+        e.preventDefault();
+
+        if (!validarCampos()) return;
+
+        try {
+            setProcesando(true);
+            setError("");
+            setMensaje("");
+            if (editandoId === null) {
+                await crearVideojuego();
+                setMensaje("Videojuego creado correctamente");
+            } else {
+                await actualizarVideojuego();
+                setMensaje("Videojuego actualizado correctamente");
+            }
+            setFormulario(formularioInicial);
+            setEditandoId(null);
+
+        }catch (err) {
+            setError(err.message);
+        } finally {
+            setProcesando(false);
+        }
+    }
+    /*----------------- Función para cancelar la edición ------------------ */
+    function cancelarEdicion() {
+        setEditandoId(null);
+        setFormulario(formularioInicial);
+        setMensaje("");
+    }
+    /*--------------- Función assyn para eliminar con delete --------------- */
+    async function eliminarVideojuego(id) {
+        const confirmar = window.confirm("¿Está seguro de eliminar este videojuego?");
+        if (!confirmar) return;
+        try {
+        
+        }catch (err) {
+            setError(err.message);
+        }
+    }
+    /*----------------------------------------------------------------------- */
+   
+
 
     return (
         <section className="container py-4">
