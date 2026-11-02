@@ -5,11 +5,25 @@ import VideojuegoCard from "../components/VideojuegoCard";
 const API_URL = "http://127.0.0.1:8000/api/videojuegos/";
 const TOKEN_URL = "http://127.0.0.1:8000/api/token/"
 
+const formularioInicial = {
+    nombre: "",
+    genero: "",
+    plataforma: "PC",
+    clasificacion: "",
+    fecha_lanzamiento: "",
+    activo: true,
+};
+//----------------------------------------------------------------
+
 export default function Videojuegos() {
     const [videojuegos, setVideojuegos] = useState([]);
     const [cargando, setCargando] = useState(true);
     const [error, setError] = useState("");
     const [mensaje, setMensaje] = useState("");
+    const [procesando, setProcesando] = useState(false);
+    const [formulario, setFormulario] = useState(formularioInicial);
+    const [editandoId, setEditandoId] = useState(null);
+
     const [credenciales, setCredenciales] = useState({
         username: "",
         password: "",
@@ -19,7 +33,10 @@ export default function Videojuegos() {
 
 
     useEffect(() => {
-        async function cargarVideojuegos() {
+        cargarVideojuegos();
+    }, []);
+
+    async function cargarVideojuegos() {
             try {
                 setCargando(true);
                 setError("");
@@ -36,8 +53,6 @@ export default function Videojuegos() {
                 setCargando(false);
             }
         }
-        cargarVideojuegos();
-    }, []);
 
     if (cargando) return <p>Cargando Videojuegos...</p>
     if (error) return <p>Error:{error}</p>
@@ -84,6 +99,38 @@ export default function Videojuegos() {
         } finally {
             setAutenticando(false);
         }
+    }
+    /*--------------Función manejar cambio en el formulario----------- */
+    function manejarCambioFormulario(e) {
+        const { name, value, type, checked } = e.target;
+        /**name indica qué propiedad va a cambiar *
+         * value contiene el texto o valor seleccionado
+         * checked se utiliza para el checkbox activo
+         * ...formulario conserva los demás campos
+        */
+       setFormulario({
+            ...formulario,
+            [name]: type === "checkbox" ? checked : value,
+        });
+    }
+    /*---------Función asincrónica de crear videojuegos------------- */
+    async function crearVideojuego(e) {
+        if(!token){
+            throw new Error("Debe autenticarse antes de crear un videojuego");
+        }
+        const respuesta = await fetch(API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Token ${token}`
+            },
+            body: JSON.stringify(formulario)
+        });
+        if (!respuesta.ok) {
+            throw new Error("No se pudo crear el videojuego");
+        }
+        const nuevo = await respuesta.json();
+        setVideojuegos((actuales) => [...actuales, nuevo]);
     }
     /*---------------------------------------------------------------- */
 
