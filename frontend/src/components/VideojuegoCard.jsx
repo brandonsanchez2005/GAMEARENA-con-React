@@ -4,33 +4,53 @@ export default function VideojuegoCard({
     onEliminar,
 }) {
     return (
-        <div className="col-md-4 col-lg-4">
-            <div className="card h-100 shadow-sm">
-                <div className="card-body">
-                    <h3 className="h5 card-title">{videojuego.nombre}</h3>
-                    <p className="card-text mb-1">
-                        <strong>Género:</strong>{videojuego.genero}
-                    </p>
-                    <p className="card-text mb-1">
-                        <strong>Plataforma:</strong>{videojuego.plataforma}
-                    </p>
-                    <p className="card-text mb-3">
-                        <strong>Clasificación:</strong>{""}
-                        {videojuego.clasificacion || "Sin Indicar"}
-                    </p>
-                    <div className="d-flex gap-2">
-                        <button className="btn btn-outline-primary btn-sm"
-                            onClick={() => onEditar(videojuego)}>
+        <div className="col-md-6 col-lg-4">
+            <div className="card videojuego-card h-100">
+                <div className="card-body d-flex flex-column">
+                    <div className="d-flex justify-content-between align-items-start mb-3">
+                        <h3 className="h5 card-title mb-0">
+                            {videojuego.nombre}
+                        </h3>
+
+                        <span className={`badge ${videojuego.activo ? "text-bg-success" : "text-bg-secondary"}`}>
+                            {videojuego.activo ? "Activo" : "Inactivo"}
+                        </span>
+                    </div>
+
+                    <div className="videojuego-details flex-grow-1">
+                        <p>
+                            <strong>Género:</strong>
+                            <span>{videojuego.genero || "Sin indicar"}</span>
+                        </p>
+
+                        <p>
+                            <strong>Plataforma:</strong>
+                            <span>{videojuego.plataforma}</span>
+                        </p>
+
+                        <p>
+                            <strong>Clasificación:</strong>
+                            <span>{videojuego.clasificacion || "Sin indicar"}</span>
+                        </p>
+                    </div>
+
+                    <div className="d-flex gap-2 mt-3">
+                        <button
+                            className="btn btn-outline-primary btn-sm flex-grow-1"
+                            onClick={() => onEditar(videojuego)}
+                        >
                             Editar
                         </button>
-                        <button className="btn btn-danger btn-sm"
-                            onClick={() => onEliminar(videojuego.id)}>
+
+                        <button
+                            className="btn btn-outline-danger btn-sm flex-grow-1"
+                            onClick={() => onEliminar(videojuego.id)}
+                        >
                             Eliminar
                         </button>
                     </div>
                 </div>
             </div>
         </div>
-
     );
 }
