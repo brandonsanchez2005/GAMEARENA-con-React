@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import VideojuegoCard from "../components/VideojuegoCard";
 
 const API_URL = "http://127.0.0.1:8000/api/videojuegos/";
-const TOKEN_URL = "http://127.0.0.1:8000/api/token/"
+const TOKEN_URL = "http://127.0.0.1:8000/api/token/";
 
 const formularioInicial = {
     nombre: "",
@@ -12,9 +12,8 @@ const formularioInicial = {
     clasificacion: "",
     fecha_lanzamiento: "",
     activo: true,
-};
-//----------------------------------------------------------------
-
+}
+//------------------------------------------------------------------------------------------------
 export default function Videojuegos() {
     const [videojuegos, setVideojuegos] = useState([]);
     const [cargando, setCargando] = useState(true);
@@ -35,7 +34,6 @@ export default function Videojuegos() {
     useEffect(() => {
         cargarVideojuegos();
     }, []);
-
     async function cargarVideojuegos() {
         try {
             setCargando(true);
@@ -53,17 +51,16 @@ export default function Videojuegos() {
             setCargando(false);
         }
     }
-
     if (cargando) return <p>Cargando Videojuegos...</p>
     if (error) return <p>Error:{error}</p>
-    /*------------ Función para actualizar credenciales ------------*/
+    /**----------------------Funcion para actualizar credenciales-------------------------------------------------------------- */
     function manejarCambioCredenciales(e) {
         setCredenciales({
             ...credenciales,
             [e.target.name]: e.target.value,
         });
     }
-    /*----------------- Función para iniciar sesión ----------------*/
+    /**------------------------------------------------------------------------------------ */
     async function iniciarSesion(e) {
         e.preventDefault();
         try {
@@ -92,40 +89,39 @@ export default function Videojuegos() {
                 ...actuales,
                 password: "",
             }));
-            setMensaje("Autenticación correcta");
-
+            setMensaje("Autenticacion correcta");
         } catch (err) {
             setError(err.message);
         } finally {
             setAutenticando(false);
         }
     }
-    /*------------ Función manejar cambio en el formulario ------------ */
-    function manejarCambioFormulario(e) {
+    //--------------------------------funcion manejar cambios----------------------------------------------------------------
+    function manejarCambio(e) {
         const { name, value, type, checked } = e.target;
-        /**name indica qué propiedad va a cambiar *
+        /**name indica que propiedad va a cambiar
          * value contiene el texto o valor seleccionado
          * checked se utiliza para el checkbox activo
-         * ...formulario conserva los demás campos
-        */
+         * ...formulario conserva los demas campos
+         */
         setFormulario({
             ...formulario,
             [name]: type === "checkbox" ? checked : value,
         });
     }
-    /*--------- Función asincrónica de crear videojuegos -------------- */
-    async function crearVideojuego(e) {
+    //--------------------------------funcion asincronica de crear video juegos----------------------------------------------------------------
+    async function crearVideojuego() {
         if (!token) {
-            throw new Error("Debe autenticarse antes de crear un videojuego");
+            throw new Error("Debe autenticarse antes de crear un videojuego")
         }
-
         const respuesta = await fetch(API_URL, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Token ${token}`
+                Authorization: `Token ${token}`,
             },
-            body: JSON.stringify(formulario)
+            body:
+                JSON.stringify(formulario),
         });
         if (!respuesta.ok) {
             throw new Error("No se pudo crear el videojuego");
@@ -133,20 +129,20 @@ export default function Videojuegos() {
         const nuevo = await respuesta.json();
         setVideojuegos((actuales) => [...actuales, nuevo]);
     }
-    /*------------ Función para validar campos mixtos ---------------- */
-    function validarCampos() {
+    //--------------------------------funcion validar campos minimos----------------------------------------------------------------
+    function validarFormulario() {
         if (!formulario.nombre.trim()) {
             setError("El nombre es obligatorio");
             return false;
         }
-        if (!formulario.plataforma.trim()) {
-            setError("La plataforma es obligatoria");
+        if (!formulario.plataforma) {
+            setError("Debe seleccionar una plataforma");
             return false;
         }
         return true;
     }
 
-    /*----------------- Función para iniciar edición ---------------- */
+    //----------------------------------funcion para iniciar edicion--------------------------------------------------------------
     function iniciarEdicion(videojuego) {
         setEditandoId(videojuego.id);
         setFormulario({
@@ -160,35 +156,35 @@ export default function Videojuegos() {
         setMensaje("");
         setError("");
     }
-    /*----------------- Función para actualizar videojuego ---------------- */
-    async function actualizarVideojuego(e) {
+    //----------------------------------funcion para actualizar--------------------------------------------------------------
+    async function actualizarVideojuego() {
         const respuesta = await fetch(
             `${API_URL}${editandoId}/`, {
             method: "PATCH",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Token ${token}`
+                Authorization: `Token ${token}`,
             },
-            body: JSON.stringify(formulario)
+            body: JSON.stringify(formulario),
         });
         if (!respuesta.ok) {
             throw new Error("No se pudo actualizar el videojuego");
         }
-        const actualizando = await respuesta.json();
+        const actualizado = await respuesta.json();
 
         setVideojuegos((actuales) =>
             actuales.map((videojuego) =>
-                videojuego.id === actualizando.id
-                    ? actualizando
+                videojuego.id === actualizado.id
+                    ? actualizado
                     : videojuego
             )
         );
     }
-    /*-- Función para guardar un videojuego (Creándolo o actualizándolo) -- */
+    //----------------------------------funcion para guardar un video juego (Creandolo o actualizandolo) --------------------------------------------------------------
     async function guardarVideojuego(e) {
         e.preventDefault();
 
-        if (!validarCampos()) return;
+        if (!validarFormulario()) return;
 
         try {
             setProcesando(true);
@@ -196,29 +192,30 @@ export default function Videojuegos() {
             setMensaje("");
             if (editandoId === null) {
                 await crearVideojuego();
-                setMensaje("Videojuego creado correctamente");
+                setMensaje("Videojuego creado correctamente")
             } else {
                 await actualizarVideojuego();
-                setMensaje("Videojuego actualizado correctamente");
+                setMensaje("Videojuego actualizado correctamente")
             }
             setFormulario(formularioInicial);
             setEditandoId(null);
-
         } catch (err) {
             setError(err.message);
         } finally {
             setProcesando(false);
         }
     }
-    /*----------------- Función para cancelar la edición ------------------ */
+
+    //----------------------------------funcion para Cancelar edicion --------------------------------------------------------------
     function cancelarEdicion() {
         setEditandoId(null);
-        setFormulario(formularioInicial);
+        setFormulario(formulario);
+        setError("");
         setMensaje("");
     }
-    /*--------------- Función assyn para eliminar con delete --------------- */
+    //----------------------------------funcion asyn para eliminar con delete --------------------------------------------------------------
     async function eliminarVideojuego(id) {
-        const confirmar = window.confirm("¿Está seguro de eliminar este videojuego?");
+        const confirmar = window.confirm("¿Desea eliminar este videojuego?");
         if (!confirmar) return;
         try {
             setError("");
@@ -228,17 +225,17 @@ export default function Videojuegos() {
                 `${API_URL}${id}/`, {
                 method: "DELETE",
                 headers: {
-                    "Authorization": `Token ${token}`
-                }
+                    Authorization: `Token ${token}`,
+                },
             });
             if (!respuesta.ok) {
                 throw new Error("No se pudo eliminar el videojuego");
             }
-            const actualizado = await respuesta.json();
 
             setVideojuegos((actuales) =>
                 actuales.filter((videojuego) => videojuego.id !== id)
             );
+
             if (editandoId === id) {
                 cancelarEdicion();
             }
@@ -246,8 +243,10 @@ export default function Videojuegos() {
         } catch (err) {
             setError(err.message);
         }
+
     }
-    /*----------------------------------------------------------------------- */
+
+    /**------------------------------------------------------------------------------------ */
     return (
         <section className="container py-4">
             <h1 className="mb-4">GameArena</h1>
@@ -264,7 +263,7 @@ export default function Videojuegos() {
                     </div>
 
                     <div className="mb-3">
-                        <label className="form-label">Contraseña</label>
+                        <label className="form-label">Contraseña </label>
                         <input type="password"
                             className="form-control"
                             name="password"
@@ -278,7 +277,7 @@ export default function Videojuegos() {
                 </form>
             ) : (
                 <div className="alert alert-info">
-                    Usuario autenticado.El token se enviará en POST, PATH y DELETE
+                    Usuario autenticado.El token se enviará en POST, PATH y DELETE.
                 </div>
             )}
             {mensaje && <div className="alert alert-success">{mensaje}</div>}
@@ -291,63 +290,58 @@ export default function Videojuegos() {
                     <input className="form-control"
                         name="nombre"
                         value={formulario.nombre}
-                        onChange={manejarCambioFormulario} />
+                        onChange={manejarCambio} />
                 </div>
-
                 <div className="mb-3">
                     <label className="form-label">Género</label>
                     <input className="form-control"
                         name="genero"
                         value={formulario.genero}
-                        onChange={manejarCambioFormulario} />
+                        onChange={manejarCambio} />
                 </div>
-
                 <div className="mb-3">
                     <label className="form-label">Plataforma</label>
-                    <select className="form-control"
+                    <select className="form-select"
                         name="plataforma"
                         value={formulario.plataforma}
-                        onChange={manejarCambioFormulario}>
+                        onChange={manejarCambio}>
                         <option value="PC">PC</option>
                         <option value="PlayStation">PlayStation</option>
+                        <option value="Nintendo">Nintendo</option>
                         <option value="Xbox">Xbox</option>
-                        <option value="Nintendo Switch">Nintendo Switch</option>
                     </select>
                 </div>
-
                 <div className="mb-3">
-                    <label className="form-label">Clasificación</label>
+                    <label className="form-label">Clasificacion</label>
                     <input className="form-control"
                         name="clasificacion"
                         value={formulario.clasificacion}
-                        onChange={manejarCambioFormulario} />
+                        onChange={manejarCambio} />
                 </div>
-
                 <div className="mb-3">
-                    <label className="form-label">Fecha de lanzamiento</label>
+                    <label className="form-label">Fecha de Lanzamiento</label>
                     <input type="date"
                         className="form-control"
-                        name="fechaLanzamiento"
-                        value={formulario.fechaLanzamiento}
-                        onChange={manejarCambioFormulario} />
+                        name="fecha_lanzamiento"
+                        value={formulario.fecha_lanzamiento}
+                        onChange={manejarCambio}
+                         />
                 </div>
-
                 <div className="form-check mb-3">
                     <input type="checkbox"
                         className="form-check-input"
                         name="activo"
-                        checked={formulario.activo}
-                        onChange={manejarCambioFormulario} />
-                    <label className="form-check-label">Activo</label>
+                        value={formulario.activo}
+                        onChange={manejarCambio} />
+                    <label className="form-label">Activo</label>
                 </div>
-
                 <div className="d-flex gap-2">
-                    <button className="btn-primary" disabled={procesando}>
+                    <button className="btn btn-primary" disabled={procesando}>
                         {procesando
-                            ? "Procesando..."
+                            ? "procesando..."
                             : editandoId
-                                ? "Actualizar videojuego"
-                                : "Guardar videojuego"}
+                                ? "Actualizar"
+                                : "Guardar"}
                     </button>
                     {editandoId && (
                         <button className="btn btn-secondary" type="button" onClick={cancelarEdicion}>
@@ -359,12 +353,13 @@ export default function Videojuegos() {
             <div className="row g-3">
                 {videojuegos.map((videojuego) => (
                     <VideojuegoCard
-                        key={videojuego.id}
-                        videojuego={videojuego}
-                        onEditar={iniciarEdicion}
-                        onEliminar={eliminarVideojuego} />
+                    key={videojuego.id}
+                    videojuego={videojuego}
+                    onEditar={iniciarEdicion}
+                    onEliminar={eliminarVideojuego}
+                    />
                 ))}
             </div>
-        </section >
+        </section>
     )
 }
